@@ -1,61 +1,85 @@
 from __future__ import print_function
 from functools import reduce
 
-
 class VectorOp(object):
-    # 实现向量计算操作
 
     @staticmethod
     def dot(x, y):
-        # 计算两个向量x和y的内积
         return reduce(lambda a, b: a+b, VectorOp.element_multiply(x, y), 0.0)
 
     @staticmethod
     def element_multiply(x, y):
-        # 计算两个向量相应元素之积
         return list(map(lambda x_y: x_y[0] * x_y[1], zip(x, y)))
 
     @staticmethod
     def element_add(x, y):
-        # 计算两个向量相应元素之和
         return list(map(lambda x_y: x_y[0]+x_y[1], zip(x, y)))
 
     @staticmethod
     def scala_multiply(v, s):
-        # 将v的每个元素都乘以s
-        return map(lambda e: e*s, v)
+        return list(map(lambda e: e*s, v))
 
 
 class Perceptron(object):
-
     def __init__(self, input_num, activator):
+        """
+        初始化感知器，设置输入参数的个数，以及激活函数。
+        激活函数的类型为double -> double
+        """
         self.activator = activator
+        # 权重向量初始化为0
         self.weights = [0.0] * input_num
+        # 偏置项初始化为0
         self.bias = 0.0
 
     def __str__(self):
-        return 'weight\t:%s\nbias\t:%f\n' % (self.weights, self.bias)
+        """
+        打印学习到的权重、偏置项
+        """
+        return 'weights\t:%s\nbias\t:%f\n' % (self.weights, self.bias)
 
     def predict(self, input_vec):
-        return VectorOp.dot((input_vec, self.weights)+self.bias)
+        """
+        输入向量，输出感知器的计算结果
+        """
+        # 计算向量input_vec[x1,x2,x3...]和weights[w1,w2,w3,...]的内积
+        # 然后加上bias
+        return self.activator(
+            VectorOp.dot(input_vec, self.weights) + self.bias)
 
     def train(self, input_vecs, labels, iteration, rate):
+        """
+        输入训练数据：一组向量、与每个向量对应的label；以及训练轮数、学习率
+        """
         for i in range(iteration):
             self._one_iteration(input_vecs, labels, rate)
 
     def _one_iteration(self, input_vecs, labels, rate):
+        """
+        一次迭代，把所有的训练数据过一遍
+        """
+        # 把输入和输出打包在一起，成为样本的列表[(input_vec, label), ...]
+        # 而每个训练样本是(input_vec, label)
         samples = zip(input_vecs, labels)
+        # 对每个样本，按照感知器规则更新权重
         for (input_vec, label) in samples:
+            # 计算感知器在当前权重下的输出
             output = self.predict(input_vec)
-        self._update_weights(input_vec, output, label, rate)
+            # 更新权重
+            self._update_weights(input_vec, output, label, rate)
 
     def _update_weights(self, input_vec, output, label, rate):
-        delta = label-output
+        """
+        按照感知器规则更新权重
+        """
+        # 首先计算本次更新的delta
+        # 然后把input_vec[x1,x2,x3,...]向量中的每个值乘上delta，得到每个权重更新
+        # 最后再把权重更新按元素加到原先的weights[w1,w2,w3,...]上
+        delta = label - output
         self.weights = VectorOp.element_add(
-            self.weights, VectorOp.scala_multiply(input_vec, rate*delta)
-        )
-        self.bias += rate*delta
-
+            self.weights, VectorOp.scala_multiply(input_vec, rate * delta))
+        # 更新bias
+        self.bias += rate * delta
 
 def f(x):
 
