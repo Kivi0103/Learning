@@ -2,21 +2,43 @@ from __future__ import print_function
 from functools import reduce
 
 class VectorOp(object):
+    #向量运算
 
     @staticmethod
     def dot(x, y):
+        """
+        计算两个向量x和y的内积
+        """
+        # 首先把x[x1,x2,x3...]和y[y1,y2,y3,...]按元素相乘
+        # 变成[x1*y1, x2*y2, x3*y3]
+        # 然后利用reduce求和
         return reduce(lambda a, b: a+b, VectorOp.element_multiply(x, y), 0.0)
 
     @staticmethod
     def element_multiply(x, y):
+        """
+        将两个向量x和y按元素相乘
+        """
+        # 首先把x[x1,x2,x3...]和y[y1,y2,y3,...]打包在一起
+        # 变成[(x1,y1),(x2,y2),(x3,y3),...]
+        # 然后利用map函数计算[x1*y1, x2*y2, x3*y3]
         return list(map(lambda x_y: x_y[0] * x_y[1], zip(x, y)))
 
     @staticmethod
     def element_add(x, y):
+        """
+        将两个向量x和y按元素相加
+        """
+        # 首先把x[x1,x2,x3...]和y[y1,y2,y3,...]打包在一起
+        # 变成[(x1,y1),(x2,y2),(x3,y3),...]
+        # 然后利用map函数计算[x1+y1, x2+y2, x3+y3]
         return list(map(lambda x_y: x_y[0]+x_y[1], zip(x, y)))
 
     @staticmethod
     def scala_multiply(v, s):
+        """
+        将向量v中的每个元素和标量s相乘
+        """
         return list(map(lambda e: e*s, v))
 
 
