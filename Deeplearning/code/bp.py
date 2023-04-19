@@ -167,8 +167,8 @@ class Network(object):
 
             for conn in connections:
                 self.connections.add_connection(conn)
-                conn.upstream_node.append_upstream_connection(conn)
-                conn.downstream_node.append_downstream_connection(conn)
+                conn.downstream_node.append_upstream_connection(conn)
+                conn.upstream_node.append_downstream_connection(conn)
 
     def train(self, labels, data_set, rate, iteration):
         '''
@@ -340,7 +340,9 @@ def gradient_check_test():
 
 
 if __name__ == '__main__':
-    net = Network([8, 3, 8])
-    train(net)
-    net.dump()
-    correct_ratio(net)
+    gradient_check_test()
+    # net = Network([8, 3, 8])
+    # train(net)
+    # net.dump()
+    # correct_ratio(net)
+
