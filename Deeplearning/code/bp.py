@@ -4,8 +4,12 @@ from functools import reduce
 from numpy import *
 
 # 定义sigmoid激活函数
-def sigmoid(inX):
-    return 1.0/(1+exp(-inX))
+def sigmoid(inx):
+    if inx>=0:      #对sigmoid函数的优化，避免了出现极大的数据溢出
+        return 1.0/(1+exp(-inx))
+    else:
+        return exp(inx)/(1+exp(inx))
+
 
 # 节点类，负责记录和维护节点自身信息以及与这个节点相关的上下游链接，实现输出值和误差项的计算
 class Node(object):
