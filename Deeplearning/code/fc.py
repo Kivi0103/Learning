@@ -153,27 +153,24 @@ class Network(object):
 from bp import train_data_set
 
 
-def transpose(args):
-    return map(
-        lambda arg: map(
-            lambda line: np.array(line).reshape(len(line), 1)
-            , arg)
-        , args
-    )
+def transpose(args):#将列表转换成numpy的向量
+    return list(map(lambda arg: list(map(lambda line: np.array(line).reshape(len(line), 1), arg)), args))
 
 
 class Normalizer(object):
     def __init__(self):
+        #十六进制表示
         self.mask = [
             0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80
         ]
 
     def norm(self, number):
-        data = map(lambda m: 0.9 if number & m else 0.1, self.mask)
+        #用mask的每一个元素于number做二进制上的并集运算，将number转化成一个用one_hot表示的二进制列表data，例如将9（二进制表示为：10010000转化成了[0.9, 0.1, 0.1, 0.9, 0.1, 0.1, 0.1, 0.1]
+        data = list(map(lambda m: 0.9 if number & m else 0.1, self.mask))
         return np.array(data).reshape(8, 1)
 
     def denorm(self, vec):
-        binary = map(lambda i: 1 if i > 0.5 else 0, vec[:,0])
+        binary = list(map(lambda i: 1 if i > 0.5 else 0, vec[:,0]))
         for i in range(len(self.mask)):
             binary[i] = binary[i] * self.mask[i]
         return reduce(lambda x,y: x + y, binary)
@@ -182,10 +179,15 @@ def train_data_set():
     normalizer = Normalizer()
     data_set = []
     labels = []
-    for i in range(0, 256):
+    for i in range(0, 256):#将0-255全部转换成二进制式的one_hot列表形式
         n = normalizer.norm(i)
         data_set.append(n)
         labels.append(n)
+    #data_set和labels都是一个256*8的列表，里面的每一行分别表示一个自然数
+    print("preprepreprepreprerre")
+    print(labels)
+    print("*******************")
+    print(data_set)
     return labels, data_set
 
 def correct_ratio(network):
@@ -196,12 +198,19 @@ def correct_ratio(network):
             correct += 1.0
     print ('correct_ratio: %.2f%%' % (correct / 256 * 100))
 
-
+#测试函数，仅用于测试各个类和方法是否正确
 def test():
     labels, data_set = transpose(train_data_set())
-    net = Network([8, 3, 8])
+    print("laterlaterlaterlaterlater")
+    print(labels)
+    print("****************")
+    print(data_set)
+    net = Network([8, 7, 8])
+    #学习速率
     rate = 0.5
+    #？？？不太懂mini_batch的作用
     mini_batch = 20
+    #训练轮次
     epoch = 10
     for i in range(epoch):
         net.train(labels, data_set, rate, mini_batch)
@@ -221,3 +230,6 @@ def gradient_check():
     net = Network([8, 3, 8])
     net.gradient_check(data_set[0], labels[0])
     return net
+
+if __name__ == '__main__':
+    test()
