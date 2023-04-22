@@ -91,12 +91,13 @@ class LabelLoader(Loader):#继承了loader类
             else:
                 label_vec.append(0.1)
         return label_vec
+
 def get_training_data_set():
     """
     获得训练数据集
     """
-    image_loader = ImageLoader('D:/LearningGit/Learning/Deeplearning/resources/minist/train-images-idx3-ubyte', 60000)
-    label_loader = LabelLoader('D:/LearningGit/Learning/Deeplearning/resources/minist/train-labels-idx1-ubyte', 60000)
+    image_loader = ImageLoader('D:/LearningGit/Learning/Deeplearning/resources/minist/train-images-idx3-ubyte', 600)
+    label_loader = LabelLoader('D:/LearningGit/Learning/Deeplearning/resources/minist/train-labels-idx1-ubyte', 600)
     return image_loader.load(),label_loader.load()
 
 def get_test_data_set():

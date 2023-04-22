@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import reduce
 
 import numpy as np
@@ -59,6 +60,8 @@ class FullConnectedLayer(object):
 
 # 神经网络类
 class Network(object):
+
+    #layers中表示各层节点个数，[748,300,10]
     def __init__(self, layers):
         '''
         构造函数
@@ -71,6 +74,7 @@ class Network(object):
                     SigmoidActivator()
                 )
             )
+            print(f"Layer {i}: input shape {layers[i]}, output shape {layers[i + 1]}")
 
     def predict(self, sample):
         '''
@@ -93,8 +97,8 @@ class Network(object):
         '''
         for i in range(epoch):
             for d in range(len(data_set)):
-                self.train_one_sample(labels[d],
-                    data_set[d], rate)
+                self.train_one_sample(labels[d], data_set[d], rate)
+
 
     def train_one_sample(self, label, sample, rate):
         self.predict(sample)
@@ -102,9 +106,19 @@ class Network(object):
         self.update_weight(rate)
 
     def calc_gradient(self, label):
-        delta = self.layers[-1].activator.backward(
-            self.layers[-1].output
-        ) * (label - self.layers[-1].output)
+        # print(self.layers[-1].output.shape)
+        # print(self.layers[-1].activator.backward(self.layers[-1].output).shape)
+        # print(np.label.shape())
+        # print(self.layers[-1].output.shape)
+        a = np.array(self.layers[-1].activator.backward(self.layers[-1].output))
+        # print(a.shape)
+        # print(np.array(label).reshape(10,1).shape)
+        # print(np.array(self.layers[-1].output).shape)
+        b = np.array(label).reshape(10,1) - np.array(self.layers[-1].output)
+        # print(a.shape)
+        # print(b.shape)
+        delta = a*b
+        print(delta.shape)
         for layer in self.layers[::-1]:
             layer.backward(delta)
             delta = layer.delta
@@ -149,87 +163,28 @@ class Network(object):
                     print ('weights(%d,%d): expected - actural %.4e - %.4e' % (
                         i, j, expect_grad, fc.W_grad[i,j]))
 
+from minist import get_training_data_set
+from minist import get_test_data_set
+from minist import evaluate
 
-from bp import train_data_set
+def train_and_evaluate():
+    last_error_ration = 1.0
+    epoch = 0
+    train_data_set,train_labels = get_training_data_set()
+    test_data_set, test_labels = get_test_data_set()
+    network = Network([784,300,10])
+    while True:
+        epoch += 1
+        network.train(train_labels,train_data_set,0.3,10)
+        print('%s epoch %d finished'%(datetime.datetime.now(),epoch))
+        if epoch %10==0:
+            error_ratio = evaluate(network, test_data_set, test_labels)
+            print( '%s after epoch %d, error ratio is %f' % (datetime.datetime.now(), epoch, error_ratio))
+            if error_ratio>last_error_ration:#本回合的错误率比上次还高 ？？？为什么不更新
+                break
+            else:#更新上次错误率
+                last_error_ration = error_ratio
 
-
-def transpose(args):#将列表转换成numpy的向量
-    return list(map(lambda arg: list(map(lambda line: np.array(line).reshape(len(line), 1), arg)), args))
-
-
-class Normalizer(object):
-    def __init__(self):
-        #十六进制表示
-        self.mask = [
-            0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80
-        ]
-
-    def norm(self, number):
-        #用mask的每一个元素于number做二进制上的并集运算，将number转化成一个用one_hot表示的二进制列表data，例如将9（二进制表示为：10010000转化成了[0.9, 0.1, 0.1, 0.9, 0.1, 0.1, 0.1, 0.1]
-        data = list(map(lambda m: 0.9 if number & m else 0.1, self.mask))
-        return np.array(data).reshape(8, 1)
-
-    def denorm(self, vec):
-        binary = list(map(lambda i: 1 if i > 0.5 else 0, vec[:,0]))
-        for i in range(len(self.mask)):
-            binary[i] = binary[i] * self.mask[i]
-        return reduce(lambda x,y: x + y, binary)
-
-def train_data_set():
-    normalizer = Normalizer()
-    data_set = []
-    labels = []
-    for i in range(0, 256):#将0-255全部转换成二进制式的one_hot列表形式
-        n = normalizer.norm(i)
-        data_set.append(n)
-        labels.append(n)
-    #data_set和labels都是一个256*8的列表，里面的每一行分别表示一个自然数
-    print("preprepreprepreprerre")
-    print(labels)
-    print("*******************")
-    print(data_set)
-    return labels, data_set
-
-def correct_ratio(network):
-    normalizer = Normalizer()
-    correct = 0.0;
-    for i in range(256):
-        if normalizer.denorm(network.predict(normalizer.norm(i))) == i:
-            correct += 1.0
-    print ('correct_ratio: %.2f%%' % (correct / 256 * 100))
-
-#测试函数，仅用于测试各个类和方法是否正确
-def test():
-    labels, data_set = transpose(train_data_set())
-    print("laterlaterlaterlaterlater")
-    print(labels)
-    print("****************")
-    print(data_set)
-    net = Network([8, 7, 8])
-    #学习速率
-    rate = 0.5
-    #？？？不太懂mini_batch的作用
-    mini_batch = 20
-    #训练轮次
-    epoch = 10
-    for i in range(epoch):
-        net.train(labels, data_set, rate, mini_batch)
-        print('after epoch %d loss: %f' % (
-            (i + 1),
-            net.loss(labels[-1], net.predict(data_set[-1]))
-        ))
-        rate /= 2
-    correct_ratio(net)
-
-
-def gradient_check():
-    '''
-    梯度检查
-    '''
-    labels, data_set = transpose(train_data_set())
-    net = Network([8, 3, 8])
-    net.gradient_check(data_set[0], labels[0])
-    return net
 
 if __name__ == '__main__':
-    test()
+    train_and_evaluate()
