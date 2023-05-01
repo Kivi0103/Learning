@@ -1,9 +1,8 @@
 from datetime import datetime
-from functools import reduce
 
 import numpy as np
-import random
-from activators import SigmoidActivator,IdentityActivator
+from activators import SigmoidActivator
+
 
 # 全连接层实现类
 class FullConnectedLayer(object):
